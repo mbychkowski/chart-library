@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+
+    <link rel="stylesheet" href="style.css">
+    
+    <script src="https://d3js.org/d3.v5.js"></script>
+
+    <title>D3 Bar Chart</title>
+</head>
+<body>
+    <h1>D3 Bar Chart</h1>
+    <p id="add">Generate New Data</p>
+    <p id="remove">Remove Old Data</p>
+
+    <script>
+        var dataset = [];
+        var numDataPoints = 20;
+        var maxValue = 50;
+        var keyValue = 0;
+
+        var key = function(data) {
+            return data.key;
+        }
+
+        var randomGenerator = function() {
+            var randomNumber = Math.floor(Math.random() * maxValue);
+            keyValue;
+            dataset.push({
+                key: keyValue++,
+                value: randomNumber
+            });
+        }
+
+        for (var i = 0; i < numDataPoints; i++) {
+            randomGenerator();
+        }
+
+        var svgWidth = 600, svgHeight = 250;
+        var barPadding = 1;
+
+        //scale
+        var xScale = d3.scaleBand()
+            .domain(d3.range(dataset.length))
+            .range([0, svgWidth])
+            .round(true)
+            .paddingInner(0.05);
+        
+        var yScale = d3.scaleLinear()
+            .domain([0, d3.max(dataset, function(data) { return data.value; })])
+            .range([0, svgHeight]);
+
+        var svg = d3.select('body')
+            .append('svg')
+            .attr('width', svgWidth)
+            .attr('height', svgHeight);
+
+        svg.selectAll('rect')
+            .data(dataset, key)
+            .enter()
+            .append('rect')
+            .attr('x', function(data, i) {
+                return xScale(i);
+            })
+            .attr('y', function(data) {
+                return svgHeight - yScale(data.value);
+            })
+            .attr('height', function(data) {
+                return yScale(data.value);
+            })
+            .attr('width', xScale.bandwidth())
+            .attr('fill', function(data) {
+                return `rgb(0, 0, ${ Math.floor(255 / maxValue * data.value) })`
+            })
+            .on('click', function() {
+                sortBars();
+            })
+            .append('title')
+            .text(function(data) {
+                return 'This value is ' + data.value;
+            });
+
+        svg.selectAll('text')
+            .data(dataset, key)
+            .enter()
+            .append('text')
+            .text(data => {
+                return data.value;
+            })
+            .attr('x', (data, i) => {
+                return i * (svgWidth / dataset.length) + (svgWidth / dataset.length - barPadding) / 2;
+            })
+            .attr('y', data => {
+                if (data.value > 4) {
+                    return svgHeight - yScale(data.value) + 14;
+                } else {
+                    return svgHeight - yScale(data.value) - 2;
+                }
+            })
+            .attr('text-anchor', 'middle')
+            .attr('font-family', 'sans-serif')
+            .attr('font-size', '11px')
+            .attr('fill', data => {
+                if (data.value > 4) {
+                    return 'white';
+                } else {
+                    return 'black';
+                }
+            })
+            .on('click', function() {
+                sortText();
+            });
+
+        d3.selectAll('p')
+            .on('click', function() {
+                
+                var paragraphID = d3.select(this).attr("id");
+                
+                if (paragraphID == "add") {
+                    randomGenerator();
+                } else {
+                    dataset.shift();
+                }
+
+                xScale.domain(d3.range(dataset.length));
+                yScale.domain([0, d3.max(dataset, function(data) { return data.value; })]);
+
+                var bars = svg.selectAll('rect')
+                    .data(dataset, key);
+
+                bars.enter()
+                    .append('rect')
+                    .attr('x', svgWidth)
+                    .attr('y', function(data) {
+                        return svgHeight - yScale(data.value);
+                    })
+                    .attr('width', xScale.bandwidth())
+                    .attr('height', function(data) {
+                        return yScale(data.value);
+                    })
+                    .attr('fill', function(data) {
+                        return `rgb(0, 0, ${Math.round(data.value * 10)})`
+                    })
+                    .merge(bars)
+                    .transition()
+                    .duration(500)
+                    .attr('x', function(data, i) {
+                        return xScale(i);
+                    })
+                    .attr('y', function(data) {
+                        return svgHeight - yScale(data.value)
+                    })
+                    .attr('width', xScale.bandwidth)
+                    .attr('height', function(data) {
+                        return yScale(data.value)
+                    });
+
+                bars.exit()
+                    .transition()
+                    .duration(500)
+                    .attr("x", svgWidth)
+                    .remove();
+
+                var text = svg.selectAll('text')
+                    .data(dataset), key;
+                
+                text.enter()
+                    .append('text')
+                    .text(function(data) { return data.value; })
+                    .attr('x', function(data, i) {
+                            return svgWidth;
+                        })                    
+                    .attr('y', function(data) {
+                        if (data.value > 4) {
+                            return svgHeight - yScale(data.value) + 14;
+                        } else {
+                            return svgHeight - yScale(data.value) - 2;
+                        }
+                    })
+                    .attr('fill', function(data) {
+                        if (data.value > 4) {
+                            return 'white';
+                        } else {
+                            return 'black';
+                        }
+                    })
+                    .attr('text-anchor', 'middle')
+                    .attr('font-family', 'sans-serif')
+                    .attr('font-size', '11px')
+                    .attr('fill', function(data) {
+                        if (data.value > 4) {
+                            return 'white';
+                        } else {
+                            return 'black';
+                        }
+                    })
+                    .merge(text)
+                    .transition()
+                    .duration(500)
+                    .attr('x', function(data, i) {
+                        return xScale(i) + xScale.bandwidth() / 2;
+                        })                    
+                    .attr('y', function(data) {
+                        if (data.value > 4) {
+                            return svgHeight - yScale(data.value) + 14;
+                        } else {
+                            return svgHeight - yScale(data.value) - 2;
+                        }
+                    });
+            
+            });
+            
+        var sortBars = function() {
+            svg.selectAll('rect')
+                .sort(function(a, b) {
+                    return d3.ascending(a.value, b.value)
+                })
+                .transition()
+                .duration(1000)
+                .attr('x', function(data, i) {
+                    return xScale(i);
+                });
+        }
+
+        var sortText = function() {
+            svg.selectAll('text')
+                .sort(function(a, b) {
+                    return d3.ascending(a.value, b.value)
+                })
+                .transition()
+                .duration(1000);
+        }
+
+    </script>
+</body>
+</html>

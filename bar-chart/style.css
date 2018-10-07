@@ -1,0 +1,17 @@
+div.bar {
+    display: inline-block;
+    margin-right: 2px;
+    width: 20px; height: 75px;
+    background-color: teal;
+}
+
+rect {
+    -moz-transition: all 0.25s;
+    -o-transition: all 0.25s;
+    -webkit-transition: all 0.25s;
+    transition: all 0.25s;
+}
+
+rect:hover {
+    fill:orange;
+}
