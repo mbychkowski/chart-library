@@ -1,5 +1,6 @@
+// Start data generation
 var dataset = [];
-var numDataPoints = 100;
+var numDataPoints = 1000;
 var maxValue = Math.random() * 1000;
 
 var svgWidth = 600, svgHeight = 400;
@@ -14,6 +15,7 @@ var randomGenerator = function () {
 }
 
 randomGenerator();
+// End data generation
 
 // define scales
 var xScale = d3.scaleLinear()
@@ -78,7 +80,7 @@ circle
     .attr('r', 2);
     
 // animation
-d3.select('p')
+d3.select(this)
     .on('click', () => {
         
         dataset = [];

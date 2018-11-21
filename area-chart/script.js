@@ -3,7 +3,7 @@ var dataset,
     yScale,
     xAxis,
     yAxis,
-    line;
+    area;
 
 var svgWidth = 800, svgHeight = 300;
 var padding = 40;
@@ -33,7 +33,7 @@ d3.csv('mauna_loa_co2_monthly_averages.csv', rowConverter)
 
         yScale = d3.scaleLinear()
             .domain([
-                0,
+                d3.min(dataset, function(d) { if(d.average >= 0) return d.average; }),
                 d3.max(dataset, function(d) { return d.average; })
             ])
             .range([svgHeight - padding, 0]);
@@ -42,15 +42,17 @@ d3.csv('mauna_loa_co2_monthly_averages.csv', rowConverter)
         xAxis = d3.axisBottom(xScale).ticks(10);
         yAxis = d3.axisLeft(yScale).ticks(6);
 
-        line = d3.line()
-            .defined(function(d) { return d.average >= 0 && d.average <= 350; })
+        area = d3.area()
+            .defined(function(d) { return d.average >= 0; })
             .x(function(d) { return xScale(d.date); })
-            .y(function(d) { return yScale(d.average); });
+            .y0(function() { return yScale.range()[0]})
+            .y1(function(d) { return yScale(d.average); });
         
-        dangerLine = d3.line()
+        dangerArea = d3.area()
             .defined(function(d) { return d.average >= 350; })
             .x(function(d) { return xScale(d.date); })
-            .y(function(d) { return yScale(d.average); });
+            .y0(function() { return yScale(350); })
+            .y1(function(d) { return yScale(d.average); });
 
         var svg = d3.select('body')
             .append('svg')  
@@ -69,13 +71,13 @@ d3.csv('mauna_loa_co2_monthly_averages.csv', rowConverter)
 
         svg.append('path')
             .datum(dataset)
-            .attr('class', 'line')
-            .attr('d', line);
+            .attr('class', 'area')
+            .attr('d', area);
 
         svg.append('path')
             .datum(dataset)
-            .attr('class', 'line danger')
-            .attr('d', dangerLine);
+            .attr('class', 'area danger')
+            .attr('d', dangerArea);
 
         svg.append('line')
             .attr('class', 'line threshold')

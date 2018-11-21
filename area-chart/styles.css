@@ -1,0 +1,21 @@
+.area {
+    stroke-width: 1;
+    fill: seagreen;    
+    stroke: seagreen; 
+}
+
+.danger {
+    stroke: crimson;
+    fill: crimson;
+}
+
+.threshold {
+    stroke: crimson;
+    stroke-dasharray: 3, 5;
+}
+
+.dangerLabel {
+    font-family: Helvetica, Arial, sans-serif;
+    fill: crimson;
+    font-size: 12px;
+}
